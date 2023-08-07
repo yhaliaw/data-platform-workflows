@@ -18,10 +18,17 @@ on:
         description: |
           Juju cloud
 
-          Must be one of: "lxd"
+          Must be one of: "lxd", "microk8s"
 
           https://juju.is/docs/olm/cloud
         required: true
+        type: string
+      microk8s-snap-channel:
+        description: |
+          microk8s snap channel
+
+          Required if `cloud` input is "microk8s"
+        required: false
         type: string
       juju-agent-version:
         description: Juju agent version
@@ -65,6 +72,22 @@ on:
           for key, value in secrets.items():
               assert isinstance(key, str) and isinstance(value, str)
           ```
+        required: false
+      docker-hub-username:
+        description: |
+          Docker Hub username
+          
+          Required if `cloud` input is "microk8s"
+          
+          Needed to avoid Docker Hub rate limits
+        required: false
+      docker-hub-password:
+        description: |
+          Docker Hub password
+          
+          Required if `cloud` input is "microk8s"
+          
+          Needed to avoid Docker Hub rate limits
         required: false
 
 jobs:
@@ -131,7 +154,19 @@ jobs:
       - name: Validate cloud input
         shell: python
         # Keep synchronized with inputs.cloud description
-        run: assert "${{ inputs.cloud }}" in ("lxd")
+        run: |
+          CLOUD = "${{ inputs.cloud }}"
+          assert CLOUD in ("lxd", "microk8s")
+          if CLOUD == "microk8s":
+              assert (
+                  "${{ inputs.microk8s-snap-channel }}" != ""
+              ), '`microk8s-snap-channel` input required if `cloud` is "microk8s"'
+              assert (
+                  "${{ secrets.docker-hub-username }}" != ""
+              ), '`docker-hub-username` secret required if `cloud` is "microk8s"'
+              assert (
+                  "${{ secrets.docker-hub-password }}" != ""
+              ), '`docker-hub-password` secret required if `cloud` is "microk8s"'
       - name: Parse Juju agent version & snap channel
         id: parse-versions
         shell: python
@@ -171,6 +206,36 @@ jobs:
           lxc network set lxdbr0 ipv6.address none
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
+      - name: Set up microk8s
+        if: ${{ inputs.cloud == 'microk8s' }}
+        run: |
+          sudo apt-get install retry -y
+          # `--classic` ignored for strict channel snap
+          sudo snap install microk8s --classic --channel="${{ inputs.microk8s-snap-channel }}"
+          # Authenticate with Docker Hub to avoid rate limit
+          # (https://docs.docker.com/docker-hub/download-rate-limit/)
+          # Workaround for https://github.com/canonical/microk8s/issues/1711
+          cat >> /var/snap/microk8s/current/args/containerd-template.toml << 'EOF'
+          [plugins."io.containerd.grpc.v1.cri".registry.configs."registry-1.docker.io".auth]
+          username = "${{ secrets.docker-hub-username }}"
+          password = "${{ secrets.docker-hub-password }}"
+          EOF
+          microk8s stop
+          microk8s start
+
+          microk8s status --wait-ready
+          # By default, the microk8s "dns" add-on uses Google Public DNS
+          # (https://microk8s.io/docs/addon-dns)
+          # Google Public DNS is not accessible from Canonical's self-hosted GitHub runners
+          # Use local DNS server instead
+          # (In stdout, ignore "Failed to print table: Broken pipe"—caused by `--max-count=1`)
+          dns_server=$(resolvectl status | grep --perl-regexp --only-matching --max-count=1 "Current DNS Server: \K[^\s]+")
+
+          retry --times 3 --delay 5 -- microk8s enable dns:"$dns_server"
+          microk8s status --wait-ready
+          microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns
+          retry --times 3 --delay 5 -- microk8s enable hostpath-storage
+          microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
