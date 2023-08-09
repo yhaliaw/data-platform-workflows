@@ -236,6 +236,9 @@ jobs:
           microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns
           retry --times 3 --delay 5 -- microk8s enable hostpath-storage
           microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner
+
+          # Used by lightkube and kubernetes (Python package)
+          microk8s config > ~/.kube/config
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
