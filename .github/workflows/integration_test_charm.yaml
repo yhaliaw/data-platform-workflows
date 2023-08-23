@@ -239,6 +239,9 @@ jobs:
 
           # Used by lightkube and kubernetes (Python package)
           microk8s config > ~/.kube/config
+          
+          # Add ".local" to `NO_PROXY`
+          export NO_PROXY="$NO_PROXY,.local"
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
