@@ -243,10 +243,6 @@ jobs:
           # Add ".local" to `NO_PROXY`
           echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
           echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
-          echo bar1
-          echo "$NO_PROXY"
-          echo bar
-          echo "$no_proxy"
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
@@ -255,11 +251,7 @@ jobs:
           # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
           # Self-hosted runners require proxy
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
-          echo "$NO_PROXY"
-          echo "$no_proxy"
-          echo foo
           juju add-model test
-          juju model-config no-proxy
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
