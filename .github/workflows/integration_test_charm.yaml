@@ -241,9 +241,9 @@ jobs:
           microk8s config > ~/.kube/config
           
           # Add ".local" to `NO_PROXY`
-          export NO_PROXY="$NO_PROXY,.local,.svc"
-          export no_proxy="$NO_PROXY"
-          
+          echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
+          echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
+          echo bar1
           echo "$NO_PROXY"
           echo bar
           echo "$no_proxy"
