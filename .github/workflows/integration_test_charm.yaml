@@ -241,7 +241,9 @@ jobs:
           microk8s config > ~/.kube/config
           
           # Add ".local" to `NO_PROXY`
-          export NO_PROXY="$NO_PROXY,.local"
+          export NO_PROXY="$NO_PROXY,.local,.svc"
+          
+          echo "$NO_PROXY"
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
