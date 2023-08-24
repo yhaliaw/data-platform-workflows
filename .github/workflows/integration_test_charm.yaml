@@ -252,6 +252,9 @@ jobs:
           # Self-hosted runners require proxy
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
           juju add-model test
+          echo foo
+          cat /etc/environment
+          echo foo1
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
