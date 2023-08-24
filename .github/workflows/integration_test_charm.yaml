@@ -243,8 +243,8 @@ jobs:
           # Add ".local" to `NO_PROXY`
           echo "NO_PROXY=$NO_PROXY,.local" >> "$GITHUB_ENV"
           echo "no_proxy=$NO_PROXY,.local" >> "$GITHUB_ENV"
-          sudo echo "NO_PROXY=$NO_PROXY,.local" >> /etc/environment
-          sudo echo "no_proxy=$NO_PROXY,.local" >> /etc/environment
+          echo "NO_PROXY=$NO_PROXY,.local" | sudo tee -a /etc/environment
+          echo "no_proxy=$NO_PROXY,.local" | sudo tee -a /etc/environment
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
