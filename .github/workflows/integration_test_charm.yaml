@@ -241,10 +241,10 @@ jobs:
           microk8s config > ~/.kube/config
           
           # Add ".local" to `NO_PROXY`
-          echo "NO_PROXY=$NO_PROXY,.local" >> "$GITHUB_ENV"
-          echo "no_proxy=$NO_PROXY,.local" >> "$GITHUB_ENV"
-          echo "NO_PROXY=$NO_PROXY,.local" | sudo tee -a /etc/environment
-          echo "no_proxy=$NO_PROXY,.local" | sudo tee -a /etc/environment
+          echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
+          echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
+          echo "NO_PROXY=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
+          echo "no_proxy=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
