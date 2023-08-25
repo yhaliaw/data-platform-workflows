@@ -243,6 +243,12 @@ jobs:
           # Add ".local" to `NO_PROXY`
           echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
           echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
+          sudo rm /etc/environment
+          echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin" | sudo tee -a /etc/environment
+          echo "HTTP_PROXY=$HTTP_PROXY" | sudo tee -a /etc/environment
+          echo "http_proxy=$http_proxy" | sudo tee -a /etc/environment
+          echo "HTTPS_PROXY=$HTTPS_PROXY" | sudo tee -a /etc/environment
+          echo "https_proxy=$https_proxy" | sudo tee -a /etc/environment
           echo "NO_PROXY=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
           echo "no_proxy=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
       - name: Set up environment
