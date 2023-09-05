@@ -239,30 +239,12 @@ jobs:
 
           # Used by lightkube and kubernetes (Python package)
           microk8s config > ~/.kube/config
-          
-          # Add ".local" to `NO_PROXY`
-          echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
-          echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
-          sudo rm /etc/environment
-          echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin" | sudo tee -a /etc/environment
-          echo "HTTP_PROXY=$HTTP_PROXY" | sudo tee -a /etc/environment
-          echo "http_proxy=$http_proxy" | sudo tee -a /etc/environment
-          echo "HTTPS_PROXY=$HTTPS_PROXY" | sudo tee -a /etc/environment
-          echo "https_proxy=$https_proxy" | sudo tee -a /etc/environment
-          echo "NO_PROXY=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
-          echo "no_proxy=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           juju bootstrap "${{ inputs.cloud }}" "${{ steps.parse-versions.outputs.agent_bootstrap_option }}"
-          # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
-          # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
-          # Self-hosted runners require proxy
-          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
+          juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
-          echo foo
-          cat /etc/environment
-          echo foo1
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
