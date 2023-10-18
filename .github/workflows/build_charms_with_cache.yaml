@@ -215,7 +215,7 @@ jobs:
           then
             sg lxd -c "tox run -e build -- --bases-index='${{ matrix.charm.bases_index }}'"
           else
-            sg lxd -c "charmcraft pack --bases-index='${{ matrix.charm.bases_index }}'"
+            sg lxd -c "charmcraft pack --debug -v --bases-index='${{ matrix.charm.bases_index }}'"
           fi
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
