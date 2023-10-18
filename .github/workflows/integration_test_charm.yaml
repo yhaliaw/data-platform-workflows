@@ -145,7 +145,7 @@ jobs:
         run: |
           sudo df -h
           sudo free
-          sudo /proc/cpuinfo
+          sudo cat /proc/cpuinfo
       - name: Set up aproxy
         run: |
           sudo snap install aproxy --edge
