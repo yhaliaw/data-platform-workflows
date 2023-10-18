@@ -198,6 +198,11 @@ jobs:
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
           sudo snap install juju --classic --channel="${{ steps.parse-versions.outputs.snap_channel }}"
+      - name: Check environment resources
+        run: |
+          sudo df -h
+          sudo free
+          sudo /proc/cpuinfo
       - name: Set up aproxy
         run: |
           sudo snap install aproxy --edge
