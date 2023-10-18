@@ -156,6 +156,7 @@ jobs:
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sudo snap refresh snapd
           sudo snap refresh lxd --channel=latest/stable
           sg lxd -c "lxd waitready"
           sg lxd -c "lxd init --auto"
@@ -189,7 +190,7 @@ jobs:
         id: restore-cache
         uses: actions/cache/restore@v3
         with:
-          path: ~/ga-charmcraft-cache/**
+          path: /home/ubuntu/ga-charmcraft-cache/**
           key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ steps.charmcraft-version.outputs.revision }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
       - name: Import cached containers
         if: ${{ steps.restore-cache.outputs.cache-hit }}
@@ -198,7 +199,7 @@ jobs:
           sg lxd -c "lxc project create charmcraft"
           sg lxd -c "lxc --project default profile show default | lxc --project charmcraft profile edit default"
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
-          for container_tarball in ~/ga-charmcraft-cache/*
+          for container_tarball in /home/ubuntu/ga-charmcraft-cache/*
           do
             sg lxd -c "lxc --project charmcraft import \"$container_tarball\""
             container_name_without_inode=$(basename --suffix .tar "$container_tarball")
@@ -234,7 +235,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}-charmcraft-build-logs
-          path: ~/.local/state/charmcraft/log/
+          path: /home/ubuntu/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
@@ -251,7 +252,7 @@ jobs:
         id: export-containers
         if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
         run: |
-          mkdir -p ~/ga-charmcraft-cache
+          mkdir -p /home/ubuntu/ga-charmcraft-cache
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
           do
@@ -274,7 +275,7 @@ jobs:
               container_name_without_inode="$container_name_with_inode"
             fi
             # Use GitHub actions/cache compression
-            sg lxd -c "lxc --project charmcraft export --optimized-storage --compression none \"$container_name_without_inode\" ~/ga-charmcraft-cache/\"$container_name_without_inode\".tar"
+            sg lxd -c "lxc --project charmcraft export --optimized-storage --compression none \"$container_name_without_inode\" /home/ubuntu/ga-charmcraft-cache/\"$container_name_without_inode\".tar"
           done
       - if: ${{ github.event_name == 'schedule' && steps.restore-cache.outputs.cache-hit }}
         name: Delete cache on main
@@ -293,6 +294,6 @@ jobs:
         if: ${{ steps.export-containers.outcome == 'success' }}
         uses: actions/cache/save@v3
         with:
-          path: ~/ga-charmcraft-cache/**
+          path: /home/ubuntu/ga-charmcraft-cache/**
           # Use value of "key" from restore-cache step
           key: ${{ steps.restore-cache.outputs.cache-primary-key }}
