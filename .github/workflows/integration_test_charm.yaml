@@ -104,12 +104,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install CLI
+      - name: Install venv and pipx
         run: |
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install --user pipx
           python3 -m pipx ensurepath
-          pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
       - name: Install tox & poetry
         run: |
           pipx install tox
@@ -173,12 +172,11 @@ jobs:
                 }
           }
           EOF
-      - name: Install CLI
+      - name: Install venv and pipx
         run: |
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install --user pipx
           python3 -m pipx ensurepath
-          pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
       - name: Redact secrets from log
         run: redact-secrets
         env:
