@@ -197,7 +197,28 @@ jobs:
       - name: Set up environment
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
-          sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
+          sudo snap install juju --classic --channel="${{ steps.parse-versions.outputs.snap_channel }}"
+      - name: Set up aproxy
+        run: |
+        sudo snap install aproxy --edge
+        sudo snap set aproxy proxy=squid.internal:3128
+        sudo nft -f - << EOF
+        define default-ip = $(ip route get $(ip route show 0.0.0.0/0 | grep -oP 'via \K\S+') | grep -oP 'src \K\S+')
+        define private-ips = { 10.0.0.0/8, 127.0.0.1/8, 172.16.0.0/12, 192.168.0.0/16 }
+        table ip aproxy
+        flush table ip aproxy
+        table ip aproxy {
+              chain prerouting {
+                      type nat hook prerouting priority dstnat; policy accept;
+                      ip daddr != \$private-ips tcp dport { 80, 443 } counter dnat to \$default-ip:8443
+              }
+
+              chain output {
+                      type nat hook output priority -100; policy accept;
+                      ip daddr != \$private-ips tcp dport { 80, 443 } counter dnat to \$default-ip:8443
+              }
+        }
+        EOF
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
@@ -239,18 +260,6 @@ jobs:
 
           # Used by lightkube and kubernetes (Python package)
           microk8s config > ~/.kube/config
-          
-          # Add ".local" to `NO_PROXY`
-          echo "NO_PROXY=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
-          echo "no_proxy=$NO_PROXY,.local,.svc" >> "$GITHUB_ENV"
-          sudo rm /etc/environment
-          echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin" | sudo tee -a /etc/environment
-          echo "HTTP_PROXY=$HTTP_PROXY" | sudo tee -a /etc/environment
-          echo "http_proxy=$http_proxy" | sudo tee -a /etc/environment
-          echo "HTTPS_PROXY=$HTTPS_PROXY" | sudo tee -a /etc/environment
-          echo "https_proxy=$https_proxy" | sudo tee -a /etc/environment
-          echo "NO_PROXY=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
-          echo "no_proxy=$NO_PROXY,.local,.svc" | sudo tee -a /etc/environment
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
@@ -258,7 +267,7 @@ jobs:
           # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
           # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
           # Self-hosted runners require proxy
-          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
+          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' juju-http-proxy="$HTTP_PROXY" juju-https-proxy="$HTTPS_PROXY" juju-no-proxy="$NO_PROXY" apt-http-proxy="$HTTP_PROXY" apt-https-proxy="$HTTPS_PROXY" snap-http-proxy="$HTTP_PROXY" snap-https-proxy="$HTTPS_PROXY"
           juju add-model test
           echo foo
           cat /etc/environment
