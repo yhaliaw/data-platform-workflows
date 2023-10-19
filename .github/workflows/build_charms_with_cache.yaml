@@ -25,6 +25,9 @@ on:
       artifact-name:
         description: Charm packages are uploaded to this GitHub artifact name
         value: ${{ inputs.artifact-name }}
+      charms:
+        description: JSON string of charms built
+        value: ${{ jobs.collect-charms.outputs.charms }}
 
 jobs:
   get-workflow-version:
