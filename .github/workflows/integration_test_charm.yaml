@@ -273,6 +273,14 @@ jobs:
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: juju debug-log --color --replay --no-tail | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-debug-log.txt
+      - name: journalctl logs
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: |
+          for model in $(juju models --format=json | jq -r '.models[]."short-name"'); do
+              for machine in "$(juju status -m $model --format=json | jq -r '.machines | keys[]')"; do
+                  juju exec -m $model --machine $machine 'sudo journalctl --boot --lines=all' > ~/logs/'${{ matrix.groups.log_artifact_path }}'/journalctl-$model-$machine.log
+              done
+          done
       - name: Upload logs
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v3
