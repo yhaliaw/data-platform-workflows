@@ -16,8 +16,6 @@ class ConnectionInformation:
 
 @pytest.fixture(scope="session")
 def microceph():
-    if not os.environ.get("CI") == "true":
-        raise Exception("Not running on CI. Skipping microceph installation")
     if "microceph" in subprocess.check_output(
         ["snap", "list"]
     ).decode("utf-8"):
