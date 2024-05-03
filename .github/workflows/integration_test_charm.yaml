@@ -140,21 +140,9 @@ jobs:
     runs-on: ${{ matrix.groups.runner || 'Ubuntu_ARM64_4C_16G_01' }}
     timeout-minutes: 120
     steps:
-      - name: Free up disk space
-        if: ${{ !matrix.groups.self_hosted }}
-        run: |
-          printf '\nDisk usage before cleanup\n'
-          df --human-readable
-          # Based on https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
-          rm -r /usr/share/dotnet
-          rm -r /opt/hostedtoolcache/
-          printf '\nDisk usage after cleanup\n'
-          df --human-readable
       - name: (self-hosted) Disk usage
-        if: ${{ matrix.groups.self_hosted }}
         run: df --human-readable
       - name: (self-hosted) Install pipx
-        if: ${{ matrix.groups.self_hosted }}
         run: |
           sudo apt-get update
           sudo apt-get install python3-pip python3-venv -y
