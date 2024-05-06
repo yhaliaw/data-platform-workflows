@@ -30,9 +30,9 @@ async def build_charm(
         # Handle multiple base formats
         # See https://discourse.charmhub.io/t/charmcraft-bases-provider-support/4713
         version = base.get("build-on", [base])[0]["channel"]
-        packed_charms = list(charm_path.glob(f"*{version}-amd64.charm"))
+        packed_charms = list(charm_path.glob(f"*{version}-arm64.charm"))
     else:
-        packed_charms = list(charm_path.glob("*-amd64.charm"))
+        packed_charms = list(charm_path.glob("*-arm64.charm"))
     if len(packed_charms) == 1:
         # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
         # to begin with `./` or `/` to distinguish them from Charmhub charms.
@@ -47,9 +47,9 @@ async def build_charm(
         if bases_index is None:
             message += " Specify `bases_index`"
         else:
-            message += " Does charmcraft.yaml contain non-amd64 architecture?"
+            message += " Does charmcraft.yaml contain non-arm64 architecture?"
         raise ValueError(message)
     else:
         raise ValueError(
-            f"Unable to find amd64 .charm file for {bases_index=} at {charm_path=}"
+            f"Unable to find arm64 .charm file for {bases_index=} at {charm_path=}"
         )
