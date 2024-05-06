@@ -225,6 +225,7 @@ jobs:
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
           sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
+          mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
@@ -254,11 +255,12 @@ jobs:
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
       - run: snap list
-      - name: Set up environment
-        # todo: constraint is lxd only
-        run: |
-          mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' --constraints arch=arm64 '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+      - name: Bootstrap lxd controller
+        if: ${{ inputs.cloud == 'lxd' }}
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'" --constraints arch="$(dpkg --print-architecture)"
+      - name: Bootstrap microk8s controller
+        if: ${{ inputs.cloud == 'microk8s' }}
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
       - name: (self-hosted) Set up Juju proxy config
         if: ${{ matrix.groups.self_hosted }}
         # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
