@@ -270,8 +270,8 @@ jobs:
       - name: Set up environment
         run: |
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
-          juju set-model-constraints arch=arm64
           juju add-model test
+          juju set-model-constraints arch=arm64
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
