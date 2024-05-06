@@ -148,6 +148,7 @@ jobs:
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install --user pipx
           python3 -m pipx ensurepath
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
