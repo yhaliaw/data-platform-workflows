@@ -270,6 +270,9 @@ jobs:
           juju add-model test
           pipx install tox
           pipx install poetry
+      - name: Add architecture model constraint
+        if: ${{ inputs.cloud == 'lxd' }}
+        run: juju set-model-constraints arch="$(dpkg --print-architecture)"
       - name: Update python-libjuju version
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
