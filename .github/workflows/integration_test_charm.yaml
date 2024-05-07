@@ -257,7 +257,7 @@ jobs:
       - run: snap list
       - name: Bootstrap lxd controller
         if: ${{ inputs.cloud == 'lxd' }}
-        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'" --constraints arch="$(dpkg --print-architecture)"
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}' --constraints arch=\"$(dpkg --print-architecture)\""
       - name: Bootstrap microk8s controller
         if: ${{ inputs.cloud == 'microk8s' }}
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
@@ -269,10 +269,8 @@ jobs:
         run: juju model-defaults http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
       - name: Set up environment
         run: |
-          dpkg --print-architecture
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
-          juju set-model-constraints arch="$(dpkg --print-architecture)"
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
