@@ -137,7 +137,7 @@ jobs:
     name: ${{ matrix.groups.job_name }}
     needs:
       - collect-integration-tests
-    runs-on: ${{ matrix.groups.runner || 'Ubuntu_ARM64_4C_16G_01' }}
+    runs-on: ${{ matrix.groups.runner || fromJSON('["self-hosted", "linux", "ARM64", "large", "jammy"]') }}
     timeout-minutes: 120
     steps:
       - name: (self-hosted) Disk usage
