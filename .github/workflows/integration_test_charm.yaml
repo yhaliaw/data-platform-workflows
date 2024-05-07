@@ -142,8 +142,6 @@ jobs:
     steps:
       - name: (self-hosted) Disk usage
         run: df --human-readable
-      - name: (self-hosted) Link python to python3
-        run: sudo ln -s /usr/bin/python3 /usr/bin/python
       - name: (self-hosted) Install pipx
         run: |
           sudo apt-get update
