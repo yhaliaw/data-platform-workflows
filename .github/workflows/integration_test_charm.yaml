@@ -257,7 +257,7 @@ jobs:
       - run: snap list
       - name: Bootstrap lxd controller
         if: ${{ inputs.cloud == 'lxd' }}
-        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}' --constraints arch=\"$(dpkg --print-architecture)\""
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}' --constraints arch=arm64 --bootstrap-constraints arch=arm64"
       - name: Bootstrap microk8s controller
         if: ${{ inputs.cloud == 'microk8s' }}
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
