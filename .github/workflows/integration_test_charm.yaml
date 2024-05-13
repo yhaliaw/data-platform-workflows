@@ -6,6 +6,9 @@
 on:
   workflow_call:
     inputs:
+      _default-runner:
+        required: false
+        type: string
       artifact-prefix:
         description: |
           Prefix for charm package GitHub artifact(s)
@@ -167,7 +170,7 @@ jobs:
     name: ${{ matrix.groups.job_name }}
     needs:
       - collect-integration-tests
-    runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
+    runs-on: ${{ matrix.groups.runner || fromJSON(inputs._default-runner) || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
     timeout-minutes: 120
     steps:
       - name: Free up disk space
