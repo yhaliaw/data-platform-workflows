@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       _default-runner:
-        required: false
+        default: '""'
         type: string
       artifact-prefix:
         description: |
