@@ -174,7 +174,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Free up disk space
-        if: ${{ !(inputs.architecture == 'arm64' || matrix.groups.self_hosted) }}
+        if: ${{ !(inputs.architecture == 'arm64' || matrix.groups.self_hosted || fromJSON(inputs._default-runner)) }}
         run: |
           printf '\nDisk usage before cleanup\n'
           df --human-readable
@@ -184,13 +184,13 @@ jobs:
           printf '\nDisk usage after cleanup\n'
           df --human-readable
       - name: (self-hosted) Disk usage
-        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
+        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted || fromJSON(inputs._default-runner) }}
         run: df --human-readable
       - name: (arm64 GitHub-hosted) Link python to python3
-        if: ${{ inputs.architecture == 'arm64' && !matrix.groups.self_hosted }}
+        if: ${{ inputs.architecture == 'arm64' && !matrix.groups.self_hosted || fromJSON(inputs._default-runner) }}
         run: sudo ln -s /usr/bin/python3 /usr/bin/python
       - name: (self-hosted) Install pipx
-        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
+        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted || fromJSON(inputs._default-runner) }}
         run: |
           sudo apt-get update
           sudo apt-get install python3-pip python3-venv -y
